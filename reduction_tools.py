@@ -23,34 +23,29 @@ def has_corrected_column(ms_path):
         tb.close()
 
 
-# tool for getting optimal image parameters
-def imparamcalc(inpms):
-    su = casatools.synthesisutils()
-
-    numSpws = []
+def imparamcalc(msfile, D_ant=12.0):
+    # get frequency information
     tb = casatools.table()
-    tb.open(inpms+'/SPECTRAL_WINDOW')
-    maxfreq = max(tb.getcol('REF_FREQUENCY'))
-    minfreq = min(tb.getcol('REF_FREQUENCY'))
-    numSpws.append(len(tb.getcol('REF_FREQUENCY')))
+    tb.open(msfile+'/SPECTRAL_WINDOW')
+    nu = tb.getcol('REF_FREQUENCY')
+    nu_avg, nu_min, nu_max = np.average(nu), np.min(nu), np.max(nu)
     tb.close()
 
+    # get the maximum uv distance and compute cellsize
     ms = casatools.ms()
-    ms.open(inpms)
-    uv_range = ms.range(["uvdist"])
-    maxuv = (uv_range["uvdist"][1])
+    ms.open(msfile)
+    maxuv = ms.range(["uvdist"])["uvdist"][1]
     ms.close()
+    cellsize = 206265. * 2.997925e8 / nu_max / maxuv / 5.0
+    est_beam = 5 * cellsize
+    mycell = str(round(cellsize, 2)) + 'arcsec'
 
-    c = 2.997925e8
-    wave = c / maxfreq
-    cellsize = 206265. * wave / maxuv / 5.0
-    mycell = str(cellsize) + 'arcsec'
-#    print("Cell size calculated: ",mycell)
-    antsize = 25.0
-    fwhm = 206265. * c / minfreq / antsize
-    myimsize = max(200, su.getOptimumSize(int(fwhm * 2.0 / cellsize)))
-#    print("Imsize calculated: ", myimsize)
-    return mycell, myimsize
+    # get the primary beam and compute image size
+    su = casatools.synthesisutils()
+    PB = 206265. * 2.997925e8 / nu_min / D_ant
+    myimsize = max(200, su.getOptimumSize(int(PB * 1.2 / cellsize)))
+
+    return mycell, myimsize, est_beam, nu_avg, PB
 
 
 def estimate_SNR(imagename, disk_mask, noise_mask):
