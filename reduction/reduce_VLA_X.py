@@ -3,7 +3,7 @@ import sys
 import numpy as np
 from casatools import msmetadata
 from scipy.interpolate import interp1d
-sys.path.append('.')
+sys.path.append('../')
 from targets_dict import targ as td
 execfile('reduction_tools.py')
 
