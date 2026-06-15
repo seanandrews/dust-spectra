@@ -124,7 +124,7 @@ src, vlbls = map(list, zip(*_))
 
 
 # Loop over batch of MS files
-for i in range(len(EB)):
+for i in [9]:  #range(len(EB)):
     # tracking
     print(f"\nReducing dataset {i:02d} for execution {EB[i]}...")
 
@@ -164,6 +164,12 @@ for i in range(len(EB)):
 
     # individualized flagging
     if i == 0:
+        flagdata(vis=init_MS, mode='manual', antenna='ea05@E02,ea16@N01', 
+                 flagbackup=False)
+        flagdata(vis=init_MS, mode='manual', field='XEST_13-010', 
+                 uvrange='0~300m', flagbackup=False)
+        flagdata(vis=init_MS, mode='manual', field='XEST_13-010', spw='0,31',
+                 flagbackup=False)
         tt = '2025/05/26/21:45:44~2025/05/26/21:46:02'
         flagdata(vis=init_MS, mode='manual', spw='1', 
                  timerange=tt, flagbackup=False)
@@ -184,6 +190,8 @@ for i in range(len(EB)):
         flagdata(vis=init_MS, mode='manual', spw='29~31',
                  timerange=tt, flagbackup=False)
     if i == 1:
+        flagdata(vis=init_MS, mode='manual', field='ITG_15',
+                 uvrange='0~250m', flagbackup=False)
         tt = '2025/05/31/20:08:30~2025/05/31/20:08:52,' + \
              '2025/05/31/20:11:23~2025/05/31/20:13:15,' + \
              '2025/05/31/20:42:42~2025/05/31/20:42:51,' + \
@@ -211,6 +219,10 @@ for i in range(len(EB)):
         flagdata(vis=init_MS, mode='manual', spw='29~31',
                  timerange=tt, flagbackup=False)
     if i == 2:
+        flagdata(vis=init_MS, mode='manual', uvrange='0~300m', 
+                 flagbackup=False)
+        flagdata(vis=init_MS, mode='manual', field='IRAS_04414',
+                 uvrange='0~550m', flagbackup=False)
         tt = '2025/06/01/20:00:00~2025/06/01/20:21:20,' + \
              '2025/06/01/20:27:04~2025/06/01/21:03:30,' + \
              '2025/06/01/21:18:00~2025/06/01/21:24:11' 
@@ -224,6 +236,8 @@ for i in range(len(EB)):
         flagdata(vis=init_MS, mode='manual', spw='29~31',
                  timerange=tt, flagbackup=False)
     if i == 3:
+        flagdata(vis=init_MS, mode='manual', uvrange='0~100m',
+                 flagbackup=False)
         tt = '2025/06/03/20:57:10~2025/06/03/20:59:43'
         flagdata(vis=init_MS, mode='manual', spw='1,2,25,26,27,28,29,30,31',
                  timerange=tt, flagbackup=False)
@@ -361,6 +375,12 @@ for i in range(len(EB)):
         flagdata(vis=init_MS, mode='manual', spw='26',
                  timerange=tt, flagbackup=False)
     if i == 9:
+        flagdata(vis=init_MS, mode='manual', uvrange='0~200m',
+                 flagbackup=False)
+        flagdata(vis=init_MS, mode='manual', uvrange='0~500m',
+                 field='CQ_Tau', flagbackup=False)
+        flagdata(vis=init_MS, mode='manual', uvrange='0~500m',
+                 field='MWC_758', flagbackup=False)
         tt = '2025/06/13/21:04:00~2025/06/13/21:25:00'
         flagdata(vis=init_MS, mode='manual', spw='10~14',
                  timerange=tt, flagbackup=False)
@@ -681,5 +701,5 @@ for i in range(len(EB)):
 
 
     # Remove pipeline MS copy to save space
-    os.system('rm -rf ' + init_MS + '*')
+    #os.system('rm -rf ' + init_MS + '*')
     print('----------------------------------------------------------------')

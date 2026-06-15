@@ -35,7 +35,9 @@ targ['FPTau']      = {'name': 'FPTau', 'label': 'FP Tau',
 targ['CXTau']      = {'name': 'CXTau', 'label': 'CX Tau',
                       'vlabel': 'CX_Tau',
                       'RA': '04:14:47.86', 'DEC': '26:48:11.01',
-                      'mua': 8.745, 'mud': -22.530}
+                      'mua': 8.745, 'mud': -22.530,
+                      'outlier_RA': '04:14:47.46',
+                      'outlier_DEC': '26:51:43.69'}
 
 targ['J04153916']  = {'name': 'J04153916', 'label': 'J04153916+2818586',
                       'vlabel': 'J04153916',
@@ -100,7 +102,9 @@ targ['J04202555']  = {'name': 'J04202555', 'label': 'J04202555+2700355',
 targ['DETau']      = {'name': 'DETau', 'label': 'DE Tau',
                       'vlabel': 'DE_Tau',
                       'RA': '04:21:55.63', 'DEC': '27:55:06.18',
-                      'mua': 10.624, 'mud': -27.198}
+                      'mua': 10.624, 'mud': -27.198,
+                      'outlier_RA': '04:21:28.17',
+                      'outlier_DEC': '27:51:02.66'}     # ~20" patch
 
 targ['RYTau']      = {'name': 'RYTau', 'label': 'RY Tau',
                       'vlabel': 'RY_Tau',
@@ -153,7 +157,9 @@ targ['UXTau']      = {'name': ['UXTauA', 'UXTauB', 'UXTauC'],
                       'RA': ['04:30:04.00', '04:30:03.58', '04:30:03.99'],
                       'DEC': ['18:13:49.47', '18:13:49.48', '18:13:46.79'],
                       'mua': [12.850, 13.732, 12.560],
-                      'mud': [-17.335, -20.007, -19.804]}
+                      'mud': [-17.335, -20.007, -19.804],
+                      'outlier_RA': '04:29:29.06',
+                      'outlier_DEC': '18:15:52.42'}
 
 targ['ZZTauIRS']   = {'name': 'ZZTauIRS', 'label': 'ZZ Tau IRS',
                       'vlabel': 'ZZ_Tau_IRS',
@@ -180,7 +186,9 @@ targ['GGTau']      = {'name': ['GGTauA', 'GGTauB'],
                       'vlabel': 'GG_Tau_A',
                       'RA': ['04:32:30.35', '04:32:30.28'], 
                       'DEC': ['17:31:40.49', '17:31:30.45'],
-                      'mua': [13.209, 13.180], 'mud': [-18.211, -20.461]}
+                      'mua': [13.209, 13.180], 'mud': [-18.211, -20.461],
+                      'outlier_RA': '04:31:57.37',
+                      'outlier_DEC': '17:31:35.87'}
 
 targ['FY_FZTau']   = {'name': ['FYTau' 'FZTau'],
                       'label': ['FY Tau', 'FZ Tau'],
@@ -204,7 +212,9 @@ targ['V807Tau']    = {'name': 'V807Tau', 'label': 'V807 Tau',
 targ['IRAS04301']  = {'name': 'IRAS04301', 'label': 'IRAS 04301+2608',
                       'vlabel': 'IRAS_04301',
                       'RA': '04:33:14.36', 'DEC': '26:14:23.46',
-                      'mua': 7.746, 'mud': -17.166}
+                      'mua': 7.746, 'mud': -17.166,
+                      'outlier_RA': '04:33:00.25',
+                      'outlier_DEC': '26:13:52.85'}     # min 15" radius
 
 targ['J04333278']  = {'name': 'J04333278', 'label': 'J04333278+1800436',
                       'vlabel': 'J04333278',
@@ -221,7 +231,9 @@ targ['GI_GKTau']   = {'name': ['GITau', 'GKTau'],
 targ['J04333905']  = {'name': 'J04333905', 'label': 'J04333905+2227207',
                       'vlabel': 'J04333905',
                       'RA': '04:33:39.08', 'DEC': '22:27:20.44',
-                      'mua': 6., 'mud': -20.}
+                      'mua': 6., 'mud': -20.,
+                      'outlier_RA': '04:33:22.71',
+                      'outlier_DEC': '22:26:46.58'}
 
 targ['DLTau']      = {'name': 'DLTau', 'label': 'DL Tau',
                       'vlabel': 'DL_Tau',
@@ -303,12 +315,16 @@ targ['ITG15']      = {'name': 'ITG15', 'label': 'ITG 15',
 targ['IRAS04370']  = {'name': 'IRAS04370', 'label': 'IRAS 04370+2559',
                       'vlabel': 'IRAS_04370',
                       'RA': '04:40:08.00', 'DEC': '26:05:25.43',
-                      'mua': 5.650, 'mud': -20.769}
+                      'mua': 5.650, 'mud': -20.769,
+                      'outlier_RA': '04:40:23.85',
+                      'outlier_DEC': '26:05:01.27'}
 
 targ['IRAS04385']  = {'name': 'IRAS04385', 'label': 'IRAS 04385+2550',
                       'vlabel': 'IRAS_04385',
                       'RA': '04:41:38.83', 'DEC': '25:56:26.74',
-                      'mua': 6.167, 'mud': -19.329}
+                      'mua': 6.167, 'mud': -19.329,
+                      'outlier_RA': '04:42:06.06',
+                      'outlier_DEC': '25:59:14.71'}
 
 targ['CIDA7']      = {'name': 'CIDA7', 'label': 'CIDA 7',
                       'vlabel': 'CIDA_7',
@@ -333,14 +349,18 @@ targ['IRAS04429']  = {'name': 'IRAS04429', 'label': 'IRAS 04429+1550',
 targ['DQTau']      = {'name': 'DQTau', 'label': 'DQ Tau',
                       'vlabel': 'DQ_Tau',
                       'RA': '04:46:53.06', 'DEC': '17:00:00.14',
-                      'mua': 4.906, 'mud': -13.296}
+                      'mua': 4.906, 'mud': -13.296,
+                      'outlier_RA': '04:46:55.14',
+                      'outlier_DEC': '17:06:44.69'}
 
 targ['Haro6-37']   = {'name': ['Haro6-37AB', 'Haro6-37C'],
                       'label': ['Haro 6-37 AB', 'Haro 6-37 C'],
                       'vlabel': 'Haro_6-37_C',
                       'RA': ['04:46:58.97', '04:46:59.09'],
                       'DEC': ['17:02:37.89', '17:02:39.96'],
-                      'mua': [4.952, 5.298], 'mud': [-13.086, -14.131]}
+                      'mua': [4.952, 5.298], 'mud': [-13.086, -14.131],
+                      'outlier_RA': '04:46:55.16',
+                      'outlier_DEC': '17:06:44.81'}     # same as DQ Tau
 
 targ['DRTau']      = {'name': 'DRTau', 'label': 'DR Tau',
                       'vlabel': 'DR_Tau',
@@ -350,7 +370,9 @@ targ['DRTau']      = {'name': 'DRTau', 'label': 'DR Tau',
 targ['DSTau']      = {'name': 'DSTau', 'label': 'DS Tau',
                       'vlabel': 'DS_Tau',
                       'RA': '04:47:48.60', 'DEC': '29:25:11.19',
-                      'mua': 5.049, 'mud': -24.439}
+                      'mua': 5.049, 'mud': -24.439,
+                      'outlier_RA': '04:47:46.45',
+                      'outlier_DEC': '29:22:03.70'}
 
 targ['GMAur']      = {'name': 'GMAur', 'label': 'GM Aur',
                       'vlabel': 'GM_Aur',
@@ -360,12 +382,16 @@ targ['GMAur']      = {'name': 'GMAur', 'label': 'GM Aur',
 targ['ABAur']      = {'name': 'ABAur', 'label': 'AB Aur',
                       'vlabel': 'AB_Aur',
                       'RA': '04:55:45.85', 'DEC': '30:33:04.29',
-                      'mua': 4.018, 'mud': -24.027}
+                      'mua': 4.018, 'mud': -24.027,
+                      'outlier_RA': '04:55:55.81',
+                      'outlier_DEC': '30:40:42.05'}
 
 targ['SUAur']      = {'name': 'SUAur', 'label': 'SU Aur',
                       'vlabel': 'SU_Aur',
                       'RA': '04:55:59.39', 'DEC': '30:34:01.50',
-                      'mua': 4.185, 'mud': -24.304}
+                      'mua': 4.185, 'mud': -24.304,
+                      'outlier_RA': '04:55:55.78',
+                      'outlier_DEC': '30:40:42.32'}     # same as for AB Aur
 
 targ['MWC480']     = {'name': 'MWC480', 'label': 'MWC 480',
                       'vlabel': 'MWC_480',
@@ -375,7 +401,9 @@ targ['MWC480']     = {'name': 'MWC480', 'label': 'MWC 480',
 targ['V836Tau']    = {'name': 'V836Tau', 'label': 'V836 Tau',
                       'vlabel': 'V836_Tau',
                       'RA': '05:03:06.59', 'DEC': '25:23:19.61',
-                      'mua': 2.991, 'mud': -17.304}
+                      'mua': 2.991, 'mud': -17.304,
+                      'outlier_RA': '05:02:58.54',
+                      'outlier_DEC': '25:16:25.00'}     # need ~15" radius
 
 targ['CIDA8']      = {'name': 'CIDA8', 'label': 'CIDA 8',
                       'vlabel': 'CIDA_8',
