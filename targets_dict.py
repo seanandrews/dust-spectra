@@ -383,8 +383,8 @@ targ['ABAur']      = {'name': 'ABAur', 'label': 'AB Aur',
                       'vlabel': 'AB_Aur',
                       'RA': '04:55:45.85', 'DEC': '30:33:04.29',
                       'mua': 4.018, 'mud': -24.027,
-                      'outlier_RA': '04:55:55.81',
-                      'outlier_DEC': '30:40:42.05'}
+                      'outlier_RA': '04:55:55.65',
+                      'outlier_DEC': '30:40:41.93'}
 
 targ['SUAur']      = {'name': 'SUAur', 'label': 'SU Aur',
                       'vlabel': 'SU_Aur',

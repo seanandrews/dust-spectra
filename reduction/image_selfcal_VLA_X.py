@@ -26,7 +26,7 @@ EB = [band + item + '/' for item in EB]
 
 
 # loop over execution blocks
-for i in [19]: #range(1,len(EB)):
+for i in [16]: #range(1,len(EB)):
     # tracking
     print(f"--------------------------------------------------")
     print(f"Imaging dataset {i:02d} for execution {EB[i]}...")
@@ -39,17 +39,19 @@ for i in [19]: #range(1,len(EB)):
     print(targs)
 
 
+
     # loop over targets
-    for it in [7]: #range(len(targs)):
+    for it in [1]: #range(len(targs)):
         # tracking
         print(f"\ninitial imaging for execution {EB[i]} of {targs[it]}...")
 
         # get target dictionary
         src = td[targs[it]]
         nt, lnt = 5.0, 2.0
-#        nt, lnt = 11.0, 4.0
+        nt, lnt = 11.0, 4.0
 #        nt, lnt = 25.0, 15.0
-        imscl = 1.0
+        imscl = 3.0
+        do_peel = True
 
         # copy the reduced MS file to a initial MS file
         self_dir = EB_dir + 'selfcal/'
@@ -57,34 +59,73 @@ for i in [19]: #range(1,len(EB)):
             os.system('mkdir ' + self_dir)
         if not os.path.exists(self_dir + 'images/'):
             os.system('mkdir ' + self_dir + 'images/')
-        cont_p0 = self_dir + targs[it] + '.' + band + '.cont_p0.ms'
-        os.system('rm -rf ' + cont_p0 + '*')
-        os.system('cp -r ' + msfiles[it] + ' ' + cont_p0)
-
-        # if necessary, make an outlier file
-        if 'outlier_RA' in src:
-            out_name = self_dir + 'images/' + \
-                       targs[it] + '.' + band + '.outlier'
-            os.system('rm -rf ' + out_name + '.txt')
-            if not isinstance(src['outlier_RA'], list):
-                oRA = list([src['outlier_RA']])
-                oDEC = list([src['outlier_DEC']])
-            else:
-                oRA = src['outlier_RA']
-                oDEC = src['outlier_DEC']
-            for iout in range(len(oRA)):
-                oRA_ = oRA[iout]
-                oDEC_ = oDEC[iout].replace(':', '.')
-                with open(out_name + '.txt', "a") as f:
-                    print("imagename=" + out_name + str(iout), file=f)
-                    print("imsize = [100,100]", file=f)
-                    print("phasecenter = J2000 " + oRA_ + ' ' + oDEC_, file=f)
-            outlierfile = out_name + '.txt'
-        else:
-            outlierfile = ''
+        cont_pre = self_dir + targs[it] + '.' + band + '.cont_pre.ms'
+        os.system('rm -rf ' + cont_pre + '*')
+        os.system('cp -r ' + msfiles[it] + ' ' + cont_pre)
 
         # get some useful imaging parameters
         cell, imsize, est_beam, nu_, pb = imparamcalc(msfiles[it], D_ant=25.)
+
+        # peel background sources outside of PB if needed
+        if do_peel:
+            # initial imaging
+            imname = self_dir + 'images/' + targs[it] + '.' + band + '.cont_pre'
+            for ext in exts: os.system('rm -rf ' + imname + ext)
+            tclean(vis=cont_pre, imagename=imname, selectdata=True, 
+                   datacolumn='data', specmode='mfs', gridder='standard', 
+                   deconvolver='mtmfs', scales=[0], pblimit=-0.1, nterms=2, 
+                   weighting='briggs', robust=2.0, imsize=int(imscl * imsize),
+                   cell=cell, niter=100000, nsigma=1.0, interactive=False,
+                   usemask='auto-multithresh', cutthreshold=0.05, 
+                   noisethreshold=nt, lownoisethreshold=lnt, smoothfactor=1.0, 
+                   sidelobethreshold=2.0, minbeamfrac=0.1, pbmask=0.0, 
+                   savemodel='none')
+
+            # mask model
+            immath(imagename=[imname + '.model.tt0', imname + '.pb.tt0'],
+                   outfile=imname + '.model.tt0.masked-within-PB',
+                   imagemd=imname + '.model.tt0',
+                   mode='evalexpr', expr='iif(IM1<0.1,IM0,0.0)')
+            makemask(mode='delete', 
+                     inpmask=imname + '.model.tt0.masked-within-PB:mask0')
+            immath(imagename=[imname + '.model.tt1', imname + '.pb.tt0'],
+                   outfile=imname + '.model.tt1.masked-within-PB',
+                   imagemd=imname + '.model.tt1',
+                   mode='evalexpr', expr='iif(IM1<0.1,IM0,0.0)')
+            makemask(mode='delete', 
+                     inpmask=imname + '.model.tt1.masked-within-PB:mask0')
+
+            # put into model column
+            os.system('mv ' + imname + '.model.tt0 ' + \
+                      imname + '.model.tt0.save')
+            os.system('mv ' + imname + '.model.tt1 ' + \
+                      imname + '.model.tt1.save')
+            tclean(vis=cont_pre, imagename=imname, selectdata=True, 
+                   datacolumn='data', specmode='mfs', gridder='standard', 
+                   deconvolver='mtmfs', scales=[0], pblimit=-0.1, nterms=2,
+                   weighting='briggs', robust=2.0, imsize=int(imscl * imsize),
+                   cell=cell, niter=0, 
+                   startmodel=[imname + '.model.tt0.masked-within-PB', 
+                               imname + '.model.tt1.masked-within-PB'], 
+                   savemodel='modelcolumn')
+
+            # subtract sources outside PB
+            uvsub(vis=cont_pre)
+            os.system('rm -rf ' + cont_pre + '-peeled*')
+            mstransform(vis=cont_pre, outputvis=cont_pre + '-peeled',
+                        datacolumn='corrected')
+
+            # copy the peeled MS into the cont_p0 MS for further use
+            cont_p0 = self_dir + targs[it] + '.' + band + '.cont_p0.ms'
+            os.system('rm -rf ' + cont_p0 + '*')
+            os.system('cp -r ' + cont_pre + '-peeled ' + cont_p0)
+        else:
+            # copy the init MS into the cont_p0 MS for further use
+            cont_p0 = self_dir + targs[it] + '.' + band + '.cont_p0.ms'
+            os.system('rm -rf ' + cont_p0 + '*')
+            os.system('cp -r ' + msfiles[it] + ' ' + cont_p0)
+
+
 
         # initial imaging
         imname = self_dir + 'images/' + targs[it] + '.' + band + '.cont_p0'
@@ -97,4 +138,4 @@ for i in [19]: #range(1,len(EB)):
                usemask='auto-multithresh', cutthreshold=0.05, 
                noisethreshold=nt, lownoisethreshold=lnt, smoothfactor=1.0, 
                sidelobethreshold=2.0, minbeamfrac=0.1, pbmask=0.0, 
-               outlierfile=outlierfile, savemodel='modelcolumn')
+               savemodel='modelcolumn')
