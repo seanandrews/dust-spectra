@@ -1,5 +1,62 @@
 from casatools import table
 import numpy as np
+from datetime import datetime, timedelta
+
+
+def mjd_to_decimal_year(mjd):
+    # convert MJD in s to year
+    mjd /= (24 * 3600)
+
+    # MJD epoch is 1858-11-17
+    ref_date = datetime(1858, 11, 17)
+    dt = ref_date + timedelta(days=mjd)
+
+    # Calculate start and end of the current year
+    year_start = datetime(dt.year, 1, 1)
+    year_end = datetime(dt.year + 1, 1, 1)
+
+    # Calculate fraction: (time passed in year) / (total time in year)
+    year_fraction = (dt - year_start) / (year_end - year_start)
+    return dt.year + year_fraction
+
+
+
+def dd_to_dms(dd):
+    # Determine the sign and work with the absolute value
+    is_positive = dd >= 0
+    dd = abs(dd)
+
+    # Calculate minutes and seconds using total seconds
+    minutes, seconds = divmod(dd * 3600, 60)
+    degrees, minutes = divmod(minutes, 60)
+
+    # Restore the sign to the degrees component
+    degrees = degrees if is_positive else -degrees
+
+    return (int(degrees), int(minutes), round(seconds, 3))
+
+
+
+def pm_corr(dt_epoch, RA, DEC, mu_RA, mu_DEC):
+    # load input coordinates and proper motions
+    xx, yy, mu_x, mu_y = RA, DEC, mu_RA, mu_DEC
+
+    # compute corrected RA and DEC in decimal degrees
+    dms = [1, 60, 3600]
+    yd = np.sum(np.array([float(j) for j in DEC.split(":")]) / dms)
+    yc = yd + (dt_epoch * 1e-3 * mu_DEC / 3600)
+    xd = np.sum(np.array([float(j) for j in RA.split(":")]) * 15 / dms)
+    xc = xd + (dt_epoch * 1e-3 * mu_RA / (np.cos(np.radians(yd)) * 3600))
+
+    # convert back to strings in CRTF
+    xx_ = dd_to_dms(xc / 15)
+    yy_ = dd_to_dms(yc)
+    ra_delim = ['h', 'm', 's']
+    m_xx = "".join([str(xx_[j]).zfill(2)+ra_delim[j] for j in range(len(xx_))])
+    m_yy = ".".join([str(j).zfill(2) for j in yy_])
+
+    return m_xx, m_yy
+
 
 
 def has_corrected_column(ms_path):

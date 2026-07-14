@@ -10,7 +10,7 @@ execfile('reduction_tools.py')
 
 # I/O paths
 pipe_dir = '/data/sandrews/VLA_LP/data/VLA/'
-proc_dir = '/d4/asha1/dust-spec/DR/VLA/'
+proc_dir = '/d4/asha1/dust-spectra/DR/VLA/'
 
 
 # fixed quantities: observing band, SPWs, flux calibrator, channel binning
@@ -124,7 +124,7 @@ src, vlbls = map(list, zip(*_))
 
 
 # Loop over batch of MS files
-for i in [9]:  #range(len(EB)):
+for i in [0,2,3,4,6,7]:  #range(len(EB)):
     # tracking
     print(f"\nReducing dataset {i:02d} for execution {EB[i]}...")
 
@@ -697,9 +697,10 @@ for i in [9]:  #range(len(EB)):
         o_MS = proc_dir + EB[i] + targ_names[j] + '.' + band + '.reduced.ms'
         os.system('rm -rf ' + o_MS + '*')
         mstransform(vis=fr_MS, outputvis=o_MS, datacolumn='data', spw=bspw,
-                    field=targ_fields[j], chanaverage=True, chanbin=chbin)
+                    field=targ_fields[j], chanaverage=True, chanbin=chbin,
+                    correlation='RR,LL')
 
 
     # Remove pipeline MS copy to save space
-    #os.system('rm -rf ' + init_MS + '*')
+    os.system('rm -rf ' + init_MS + '*')
     print('----------------------------------------------------------------')
