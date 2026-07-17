@@ -9,9 +9,9 @@ execfile('reduction_tools.py')
 
 
 # user controls
-targ = 'ITG15'
+targ = 'GOTau'
 band = 'X'
-eb = '11_1'
+eb = '12_1'
 timebin = '30s'
 
 
