@@ -124,7 +124,7 @@ src, vlbls = map(list, zip(*_))
 
 
 # Loop over batch of MS files
-for i in [0,2,3,4,6,7]:  #range(len(EB)):
+for i in [8,9,10,11,12,13,14,15]:  #range(len(EB)):
     # tracking
     print(f"\nReducing dataset {i:02d} for execution {EB[i]}...")
 

@@ -33,7 +33,7 @@ elif ((band == 'K') or (band == 'A') or (band == 'Q')):
 
 
 # loop over execution blocks
-for i in [2]: #range(len(EB)):
+for i in [7]: #range(len(EB)):
     print(f"--------------------------------------------------")
     print(f"Processing dataset {i:02d} for execution {EB[i]}...")
 
@@ -44,6 +44,7 @@ for i in [2]: #range(len(EB)):
     msfiles = [proc_dir + EB[i] + f for f in ms]
     print(targs)
 
+
     # check for the self-cal / imaging paths for this execution block
     self_dir = EB_dir + 'selfcal/'
     simg_dir = self_dir + 'images/'
@@ -53,7 +54,7 @@ for i in [2]: #range(len(EB)):
         os.system('mkdir ' + simg_dir)
 
     # loop over targets
-    for it in [1]: #range(len(targs)):
+    for it in [0]: #range(5, len(targs)):
         print(f"\nProcessing data for {targs[it]} from execution {EB[i]}...")
 
         # get imaging / self-cal information from dictionary
@@ -292,7 +293,7 @@ for i in [2]: #range(len(EB)):
             else: sc_lnt = lnt
             if 'selfcal_mode' in idict:
                 selfcal_mode = idict['selfcal_mode']
-            else: selfcal_mode = 'None'
+            else: selfcal_mode = 'MTMFS'
             if 'nterms' in idict:
                 nterms = idict['nterms']
             else: nterms = 2
@@ -568,6 +569,20 @@ for i in [2]: #range(len(EB)):
             os.system('cp -r ' + viso + '.ms ' + selfcal_MS)
 
         else:
+            ### NO SELF-CALIBRATION: just make an image and copy the MS
+            print('\nIMAGING: NO SELF-CAL...')
+            pre_name = simg_dir + targs[it] + '.' + band + '.cont_p0'
+            for ext in exts: os.system('rm -rf ' + pre_name + ext)
+            tclean(vis=cont_p0, imagename=pre_name, selectdata=True,
+                   datacolumn='data', specmode='mfs', gridder='standard',
+                   deconvolver='mtmfs', scales=[0], pblimit=pblim,
+                   nterms=2, weighting='briggs', robust=2.0,
+                   imsize=int(imscl * imsize), cell=cell, niter=100000,
+                   nsigma=1.0, interactive=False, usemask='auto-multithresh',
+                   cutthreshold=0.05, noisethreshold=nt, lownoisethreshold=lnt, 
+                   smoothfactor=1.0, sidelobethreshold=2.0, minbeamfrac=0.1, 
+                   pbmask=0., savemodel='modelcolumn')
+
             selfcal_MS = EB_dir + targs[it] + '.' + band + '.selfcal.ms'
             os.system('rm -rf ' + selfcal_MS)
-            os.system('cp -r ' + cont_p0 + '.ms ' + selfcal_MS)
+            os.system('cp -r ' + cont_p0 + ' ' + selfcal_MS)
