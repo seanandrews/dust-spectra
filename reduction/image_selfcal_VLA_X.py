@@ -33,7 +33,7 @@ elif ((band == 'K') or (band == 'A') or (band == 'Q')):
 
 
 # loop over execution blocks
-for i in [7]: #range(len(EB)):
+for i in [23]: #range(len(EB)):
     print(f"--------------------------------------------------")
     print(f"Processing dataset {i:02d} for execution {EB[i]}...")
 
@@ -54,7 +54,7 @@ for i in [7]: #range(len(EB)):
         os.system('mkdir ' + simg_dir)
 
     # loop over targets
-    for it in [0]: #range(5, len(targs)):
+    for it in [2,7]: #range(len(targs)):
         print(f"\nProcessing data for {targs[it]} from execution {EB[i]}...")
 
         # get imaging / self-cal information from dictionary
@@ -73,9 +73,9 @@ for i in [7]: #range(len(EB)):
             print('Peeling background sources...')
 
             # copy the reduced MS to an initial, pre-processing MS 
-            cont_pre = self_dir + targs[it] + '.' + band + '.cont_pre.ms'
+            cont_pre = self_dir + targs[it] + '.' + band + '.cont_pre'
             os.system('rm -rf ' + cont_pre + '*')
-            os.system('cp -r ' + msfiles[it] + ' ' + cont_pre)
+            os.system('cp -r ' + msfiles[it] + ' ' + cont_pre + '.ms')
 
             # extract the peeling parameters if available
             if 'peel_nt' in idict:          # autothresh mask in peel
@@ -108,7 +108,7 @@ for i in [7]: #range(len(EB)):
             print('Initial imaging to define peel mask...')
             pname = simg_dir + targs[it] + '.' + band + '.cont_pre'
             for ext in exts: os.system('rm -rf ' + pname + ext)
-            tclean(vis=cont_pre, imagename=pname, selectdata=True, 
+            tclean(vis=cont_pre + '.ms', imagename=pname, selectdata=True, 
                    datacolumn='data', specmode='mfs', gridder='standard', 
                    deconvolver='mtmfs', scales=[0], pblimit=p_pblim, nterms=2, 
                    weighting='briggs', robust=2.0, imsize=int(imscl * imsize),
@@ -137,7 +137,8 @@ for i in [7]: #range(len(EB)):
                 for ispw in range(Nspw):
                     sspw = str(ispw).zfill(2)
                     print('\nInitial imaging for peel: SPW ' + sspw + '...')
-                    tclean(vis=cont_pre, imagename=iname + '-spw' + sspw, 
+                    tclean(vis=cont_pre + '.ms', 
+                           imagename=iname + '-spw' + sspw, 
                            selectdata=True, datacolumn='data', specmode='mfs',
                            spw=str(ispw), gridder='standard', 
                            deconvolver='mtmfs', scales=[0], pblimit=p_pblim, 
@@ -154,18 +155,20 @@ for i in [7]: #range(len(EB)):
 
                         # gain solutions (amp + pha)
                         gcal = cont_pre + '.peel-spw' + sspw + '.ap1'
-                        gaincal(vis=cont_pre, caltable=gcal, solint='inf',
+                        gaincal(vis=cont_pre + '.ms', caltable=gcal, 
+                                solint='inf',
                                 combine='scan', spw=str(ispw), minsnr=2.5, 
                                 gaintype='G', calmode='ap')
                     
                         # apply gain solutions (amp + pha)
-                        applycal(vis=cont_pre, gaintable=gcal, spw=str(ispw),
-                                 applymode='calonly', calwt=False)
+                        applycal(vis=cont_pre + '.ms', gaintable=gcal, 
+                                 spw=str(ispw), applymode='calonly', 
+                                 calwt=False)
 
                     # subtract the self-calibrated peel model
-                    uvsub(vis=cont_pre)
-                    mstransform(vis=cont_pre, 
-                                outputvis=cont_pre + '.peel-selfcal', 
+                    uvsub(vis=cont_pre + '.ms')
+                    mstransform(vis=cont_pre + '.ms', 
+                                outputvis=cont_pre + '.ms.peel-selfcal', 
                                 datacolumn='corrected')
 
                     # undo the self-cal solutions for the subtracted data
@@ -181,20 +184,20 @@ for i in [7]: #range(len(EB)):
                         tb.done()
 
                         # apply those gaintable corrections
-                        applycal(vis=cont_pre + '.peel-selfcal',
+                        applycal(vis=cont_pre + '.ms.peel-selfcal',
                                  gaintable=gcal + '_undo', spw=str(ispw), 
                                  applymode='calonly', calwt=False)
 
                     # split out the peel + selfcal products to continue
-                    mstransform(vis=cont_pre + '.peel-selfcal',
+                    mstransform(vis=cont_pre + '.ms.peel-selfcal',
                                 outputvis=cont_p0, datacolumn='corrected')
     
 
                 # direct model subtraction (no self-calibration in peel)
                 else:
                     # subtract the clean components in peel mask
-                    uvsub(vis=cont_pre)
-                    mstransform(vis=cont_pre, outputvis=cont_p0, 
+                    uvsub(vis=cont_pre + '.ms')
+                    mstransform(vis=cont_pre + '.ms', outputvis=cont_p0, 
                                 datacolumn='corrected')
 
 
@@ -208,7 +211,8 @@ for i in [7]: #range(len(EB)):
                 iname = simg_dir + targs[it] + '.' + band + '.peel'
                 for ext in exts: os.system('rm -rf ' + iname + '-mfs' + ext)
                 print('\nInitial imaging for peel (full-band)...')
-                tclean(vis=cont_pre, imagename=iname + '-mfs', selectdata=True, 
+                tclean(vis=cont_pre + '.ms', imagename=iname + '-mfs', 
+                       selectdata=True, 
                        datacolumn='data', specmode='mfs', gridder='standard', 
                        deconvolver='mtmfs', scales=[0], pblimit=p_pblim, 
                        nterms=p_nterms, weighting='briggs', robust=2.0, 
@@ -218,22 +222,42 @@ for i in [7]: #range(len(EB)):
 
                 # full-band MTMFS self-calibration if requested
                 if peel_selfcal:
-                    print('\nPeel self-calibration (full-band)...')
+                    # remove previous self-cal iteration files for tidiness
+                    pref = targs[it] + '.' + band + '.peel'
+                    os.system('rm -rf ' + cont_pre + '.peel-mfs.p*')
+                    os.system('rm -rf ' + cont_pre + '.peel-mfs.a*')
+                    for isc in range(1,3):
+                        ms_f = self_dir + pref + '.cont_p' + str(isc) + '*.ms'
+                        os.system('rm -rf ' + ms_f)
+                        im_f = simg_dir + pref + '.cont_p' + str(isc) + '*'
+                        os.system('rm -rf ' + im_f)
+                        ms_f = self_dir + pref + '.cont_a' + str(isc) + '*.ms'
+                        os.system('rm -rf ' + ms_f)
+                        im_f = simg_dir + pref + '.cont_a' + str(isc) + '*'
+                        os.system('rm -rf ' + im_f)
 
-                    # gain solutions (amp + pha)
-                    gcal = cont_pre + '.peel-mfs.ap1'
-                    gaincal(vis=cont_pre, caltable=gcal, solint='inf',
+                    """ PHA - only self-calibration iterations """
+                    for ip in range(len(p_psolint)):
+                        print('\n...PEEL PHASE SELF-CAL iteration ' + \
+                              str(ip+1) + ': solint=' + p_psolint[ip] + '...')
+
+                        # calculate the gain solutions
+                        gcal = self_dir + pref + '.p' + str(ip+1)
+                        os.system('rm -rf ' + gcal)
+                        gaincal(vis=cont_pre + '.ms', caltable=gcal, 
+                                solint='inf',
                             combine='spw', minsnr=2.5, gaintype='G', 
                             calmode='ap')
                     
                     # apply gain solutions (amp + pha)
-                    applycal(vis=cont_pre, gaintable=gcal, spwmap=[Nspw*[0]], 
-                             applymode='calonly', calwt=False)
+                    applycal(vis=cont_pre + '.ms', gaintable=gcal, 
+                             spwmap=[Nspw*[0]], applymode='calonly', 
+                             calwt=False)
 
                     # subtract the self-calibrated peel model
-                    uvsub(vis=cont_pre)
-                    mstransform(vis=cont_pre, 
-                                outputvis=cont_pre + '.peel-selfcal', 
+                    uvsub(vis=cont_pre + '.ms')
+                    mstransform(vis=cont_pre + '.ms', 
+                                outputvis=cont_pre + '.ms.peel-selfcal', 
                                 datacolumn='corrected')
 
                     # undo the self-cal solutions for the subtracted data
@@ -246,20 +270,20 @@ for i in [7]: #range(len(EB)):
                     tb.done()
 
                     # apply those gaintable corrections
-                    applycal(vis=cont_pre + '.peel-selfcal',
+                    applycal(vis=cont_pre + '.ms.peel-selfcal',
                              gaintable=gcal + '_undo', spwmap=[Nspw*[0]],
                              applymode='calonly', calwt=False)
 
                     # split out the peel + selfcal products to continue
-                    mstransform(vis=cont_pre + '.peel-selfcal',
+                    mstransform(vis=cont_pre + '.ms.peel-selfcal',
                                 outputvis=cont_p0, datacolumn='corrected')
     
 
                 # direct model subtraction (no self-calibration in peel)
                 else:
                     # subtract the clean components in peel mask
-                    uvsub(vis=cont_pre)
-                    mstransform(vis=cont_pre, outputvis=cont_p0,
+                    uvsub(vis=cont_pre + '.ms')
+                    mstransform(vis=cont_pre + '.ms', outputvis=cont_p0,
                                 datacolumn='corrected')
 
         else:
@@ -462,7 +486,7 @@ for i in [7]: #range(len(EB)):
                 # remove previous self-cal iteration files for tidiness
                 os.system('rm -rf ' + self_dir + pref + '.p*')
                 os.system('rm -rf ' + self_dir + pref + '.a*')
-                for isc in range(1,3):
+                for isc in range(1,4):
                     ms_f = self_dir + pref + '.cont_p' + str(isc) + '*.ms'
                     os.system('rm -rf ' + ms_f)
                     im_f = simg_dir + pref + '.cont_p' + str(isc) + '*'
