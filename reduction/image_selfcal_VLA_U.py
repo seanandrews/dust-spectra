@@ -10,10 +10,10 @@ execfile('reduction_tools.py')
 
 
 # observing band and execution blocks
-band = 'X'
-EB = ['03_1', '11_1', '12_1', '02_1', '10_1', '01_1', '07_1', '08_1',
-      '05_1', '14_1', '04_1', '06_1', '09_1', '13_1', '03_2', '02_2',
-      '14_2', '07_2', '12_2', '18_1', '15_1', '16_1', '16_2', '17_1']
+band = 'U'
+EB = ['02_1', '04_1', '07_1', '08_1', '03_1', '03_2', '02_2', '01_1',
+      '04_2', '09_1', '05_1', '06_1', '10_1', '01_2', '06_2', '13_1',
+      '11_1', '12_1', '14_1', '15_1']
 EB = [band + item + '/' for item in EB]
 
 
@@ -33,7 +33,7 @@ elif ((band == 'K') or (band == 'A') or (band == 'Q')):
 
 
 # loop over execution blocks
-for i in [9]: #range(len(EB)):
+for i in range(len(EB)):
     print(f"--------------------------------------------------")
     print(f"Processing dataset {i:02d} for execution {EB[i]}...")
 
@@ -55,7 +55,7 @@ for i in [9]: #range(len(EB)):
         os.system('mkdir ' + simg_dir)
 
     # loop over targets
-    for it in [6]: #range(len(targs)):
+    for it in range(len(targs)):
         print(f"\nProcessing data for {targs[it]} from execution {EB[i]}...")
 
         # get imaging / self-cal information from dictionary

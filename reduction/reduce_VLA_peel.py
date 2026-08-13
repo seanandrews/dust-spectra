@@ -9,8 +9,10 @@ execfile('reduction_tools.py')
 
 
 # user controls
-targ = ['ITG15', 'IRAS04370', 'IRAS04385', 'CIDA7', 'GOTau', 'IRAS04414']
-eb = '12_1'
+targ = ['DSTau', 'ABAur', 'SUAur', 'V836Tau', 'CIDA8', 'MWC758', 'CQTau']
+targ = ['V836Tau']
+eb = '14_1'
+
 
 band = 'X'
 timebin = '30s'
