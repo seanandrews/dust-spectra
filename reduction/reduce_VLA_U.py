@@ -58,7 +58,7 @@ src, vlbls = map(list, zip(*_))
 
 
 # Loop over batch of MS files
-for i in range(9, len(EB)):
+for i in range(16, len(EB)):
     # tracking
     print(f"\nReducing dataset {i:02d} for execution {EB[i]}...")
 
@@ -558,7 +558,7 @@ for i in range(9, len(EB)):
         flagdata(vis=init_MS, mode='manual', spw='9~11',
                  timerange=tt, flagbackup=False)
         tt = '2025/08/02/09:54:37~2025/08/02/09:54:38,' + \
-             '2025/08/02/09:58:22~2025/08/02/09:48:38,' + \
+             '2025/08/02/09:58:22~2025/08/02/09:58:38,' + \
              '2025/08/02/09:59:15~2025/08/02/09:59:32,' + \
              '2025/08/02/10:01:07~2025/08/02/10:01:08,' + \
              '2025/08/02/10:34:19~2025/08/02/10:34:20,' + \

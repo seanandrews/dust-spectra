@@ -10,11 +10,11 @@ execfile('reduction_tools.py')
 
 # user controls
 targ = ['DSTau', 'ABAur', 'SUAur', 'V836Tau', 'CIDA8', 'MWC758', 'CQTau']
-targ = ['V836Tau']
-eb = '14_1'
+targ = ['FY_FZTau']
+eb = '05_1'
 
 
-band = 'X'
+band = 'U'
 timebin = '30s'
 
 
@@ -68,6 +68,7 @@ for it in range(len(targ)):
 
     idict = src[band][band + eb]
     nt, lnt, imscl = idict['nt'], idict['lnt'], idict['imscl']
+    nt = 5.0
 
     iname = peel_dir + 'images/' + targ[it] + '.' + band + '.selfcal.tavg'
     for ext in exts: os.system('rm -rf ' + iname + ext)
