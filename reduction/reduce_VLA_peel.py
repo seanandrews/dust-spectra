@@ -9,9 +9,9 @@ execfile('reduction_tools.py')
 
 
 # user controls
-targ = ['BPTau', 'J04202144', 'DETau', 'IRAS04200', 'IPTau', 'IRAS04260',
-        'IQTau', 'UZTau', 'J04334465']
-eb = '03_1'
+targ = ['J04202144', 'DETau', 'IRAS04200', 'J04202555', 'IPTau', 'IQTau', 
+        'J04334465', 'ZZTauIRS', 'J04333905', 'AATau']
+eb = '12_1'
 
 
 band = 'U'
@@ -71,7 +71,6 @@ for it in range(len(targ)):
 
     iname = peel_dir + 'images/' + targ[it] + '.' + band + '.selfcal.tavg'
     for ext in exts: os.system('rm -rf ' + iname + ext)
-
     tclean(vis=vname + '.ms', imagename=iname, selectdata=True, 
            datacolumn='data', specmode='mfs', gridder='standard', 
            deconvolver='mtmfs', scales=[0], pblimit=-0.1, nterms=2, 
