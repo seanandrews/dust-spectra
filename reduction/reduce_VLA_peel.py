@@ -9,9 +9,8 @@ execfile('reduction_tools.py')
 
 
 # user controls
-targ = ['J04202144', 'DETau', 'IRAS04200', 'J04202555', 'IPTau', 'IQTau', 
-        'J04334465', 'ZZTauIRS', 'J04333905', 'AATau']
-eb = '12_1'
+targ = ['DSTau', 'CIDA8', 'MWC758', 'V836Tau']
+eb = '15_1'
 
 
 band = 'U'
