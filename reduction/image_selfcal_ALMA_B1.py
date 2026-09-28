@@ -27,7 +27,7 @@ Nspw = 4
 
 
 # loop over execution blocks
-for i in range(len(EB)):
+for i in [14]:
     print(f"--------------------------------------------------")
     print(f"Processing dataset {i:02d} for execution {EB[i]}...")
 
@@ -39,6 +39,7 @@ for i in range(len(EB)):
     print(targs)
 
 
+
     # check for the self-cal / imaging paths for this execution block
     self_dir = EB_dir + 'selfcal/'
     simg_dir = self_dir + 'images/'
@@ -48,7 +49,7 @@ for i in range(len(EB)):
         os.system('mkdir ' + simg_dir)
 
     # loop over targets
-    for it in range(len(targs)):
+    for it in [14]: #, 9, 11]: #range(len(targs)):
         print(f"\nProcessing data for {targs[it]} from execution {EB[i]}...")
 
         # get imaging / self-cal information from dictionary
@@ -125,16 +126,28 @@ for i in range(len(EB)):
             print('\nPRELIMINARY IMAGING FOR SELF-CAL MODEL...')
             pre_name = simg_dir + pref + '.cont_p0'
             for ext in exts: os.system('rm -rf ' + pre_name + ext)
-            tclean(vis=cont_p0, imagename=pre_name, selectdata=True, 
-                   datacolumn='data', specmode='mfs', gridder='standard', 
-                   deconvolver='mtmfs', scales=[0], pblimit=pblim, 
-                   nterms=nterms, weighting='briggs', robust=2.0, 
-                   imsize=int(imscl * imsize), cell=cell, niter=100000, 
-                   nsigma=1.0, interactive=False, usemask='auto-multithresh', 
-                   mask=imask, cutthreshold=0.05, noisethreshold=sc_nt, 
+
+            # shallow clean around target (to ensure it is masked)
+            tclean(vis=cont_p0, imagename=pre_name, selectdata=True,
+                   datacolumn='data', specmode='mfs', gridder='standard',
+                   deconvolver='mtmfs', scales=[0], pblimit=pblim,
+                   nterms=2, weighting='briggs', robust=2.0,
+                   imsize=int(imscl * imsize), cell=cell, niter=100,
+                   nsigma=1.0, interactive=False, usemask='user', mask=imask,
+                   pbmask=0., savemodel='modelcolumn')
+
+            # deeper clean + add automask for background sources
+            tclean(vis=cont_p0, imagename=pre_name, selectdata=True,
+                   datacolumn='data', specmode='mfs', gridder='standard',
+                   deconvolver='mtmfs', scales=[0], pblimit=pblim,
+                   nterms=2, weighting='briggs', robust=2.0,
+                   imsize=int(imscl * imsize), cell=cell, niter=100000,
+                   nsigma=1.0, interactive=False, usemask='auto-multithresh',
+                   cutthreshold=0.05, noisethreshold=sc_nt, 
                    lownoisethreshold=sc_lnt, smoothfactor=1.0, 
-                   sidelobethreshold=2.0, minbeamfrac=0.1, pbmask=0., 
-                   savemodel='modelcolumn')
+                   sidelobethreshold=2.0, minbeamfrac=0.1,
+                   pbmask=0., restart=True, savemodel='modelcolumn')
+
 
 
             ### SELF-CAL using images in each SPW
@@ -317,17 +330,29 @@ for i in range(len(EB)):
                     # image the results
                     iname = simg_dir + pref + '.cont_p' + str(ip+1)
                     for ext in exts: os.system('rm -rf ' + iname + ext)
-                    tclean(vis=viso + '.ms', imagename=iname, selectdata=True, 
+
+                    # shallow clean around target (to ensure it is masked)
+                    tclean(vis=viso + '.ms', imagename=iname, selectdata=True,
                            datacolumn='data', specmode='mfs', 
                            gridder='standard', deconvolver='mtmfs', scales=[0], 
                            pblimit=pblim, nterms=nterms, weighting='briggs', 
                            robust=2.0, imsize=int(imscl * imsize), cell=cell, 
-                           niter=100000, nsigma=1.0, interactive=False,
+                           niter=100, nsigma=1.0, interactive=False, 
+                           usemask='user', mask=imask, pbmask=0., 
+                           savemodel='modelcolumn')
+
+                    # deeper clean + add automask for background sources
+                    tclean(vis=viso + '.ms', imagename=iname, selectdata=True,
+                           datacolumn='data', specmode='mfs', 
+                           gridder='standard', deconvolver='mtmfs', scales=[0], 
+                           pblimit=pblim, nterms=nterms, weighting='briggs', 
+                           robust=2.0, imsize=int(imscl * imsize), cell=cell, 
+                           niter=100000, nsigma=1.0, interactive=False, 
                            usemask='auto-multithresh', cutthreshold=0.05, 
-                           mask=imask,
-                           noisethreshold=sc_nt, lownoisethreshold=sc_lnt, 
+                           noisethreshold=sc_nt, lownoisethreshold=sc_lnt,
                            smoothfactor=1.0, sidelobethreshold=2.0, 
-                           minbeamfrac=0.1, pbmask=0., savemodel='modelcolumn')
+                           minbeamfrac=0.1, pbmask=0., restart=True, 
+                           savemodel='modelcolumn')
 
 
                 """ AMP + PHA self-calibration iterations """
@@ -362,16 +387,28 @@ for i in range(len(EB)):
 
                     # image
                     iname = simg_dir + pref + '.cont_a' + str(ia+1)
+                    for ext in exts: os.system('rm -rf ' + iname + ext)
+
+                    # shallow clean around target (to ensure it is masked)
                     tclean(vis=viso + '.ms', imagename=iname, selectdata=True,
                            datacolumn='data', specmode='mfs', 
                            gridder='standard', deconvolver='mtmfs', scales=[0],                            pblimit=pblim, nterms=nterms, weighting='briggs', 
                            robust=2.0, imsize=int(imscl * imsize), cell=cell, 
-                           niter=100000, nsigma=1.0, interactive=False,
-                           usemask='auto-multithresh', cutthreshold=0.05,
-                           mask=imask,
-                           noisethreshold=sc_nt, lownoisethreshold=sc_lnt, 
+                           niter=100, nsigma=1.0, interactive=False, 
+                           usemask='user', mask=imask, pbmask=0., 
+                           savemodel='modelcolumn')
+
+                    # deeper clean + add automask for background sources
+                    tclean(vis=viso + '.ms', imagename=iname, selectdata=True,
+                           datacolumn='data', specmode='mfs', 
+                           gridder='standard', deconvolver='mtmfs', scales=[0],                            pblimit=pblim, nterms=nterms, weighting='briggs', 
+                           robust=2.0, imsize=int(imscl * imsize), cell=cell, 
+                           niter=100000, nsigma=1.0, interactive=False, 
+                           usemask='auto-multithresh', cutthreshold=0.05, 
+                           noisethreshold=sc_nt, lownoisethreshold=sc_lnt,
                            smoothfactor=1.0, sidelobethreshold=2.0, 
-                           minbeamfrac=0.1, pbmask=0., savemodel='modelcolumn')
+                           minbeamfrac=0.1, pbmask=0., restart=True, 
+                           savemodel='modelcolumn')
 
 
                 # copy the self-calibrated MS back up a layer

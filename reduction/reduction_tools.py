@@ -124,40 +124,72 @@ def estimate_SNR(imagename, disk_mask, noise_mask):
     print("# Peak SNR: %.1f" % (SNR,))
 
 
-def export_vis(visname, outname):
-    # get the data tables out of the MS file
+def export_vis(visname, outname, combine_pol=False):
+    # get the tables out of the MS 
     tb.open(visname)
-    data = np.squeeze(tb.getcol("DATA"))
-    flag = np.squeeze(tb.getcol("FLAG"))
+    data = tb.getcol("DATA")
+    flag = tb.getcol("FLAG")
     uvw = tb.getcol("UVW")
-    weight = tb.getcol("WEIGHT")
     spwid = tb.getcol("DATA_DESC_ID")
+    cols = tb.colnames()
+    if 'WEIGHT_SPECTRUM' in cols:
+        weight = tb.getcol("WEIGHT_SPECTRUM")
+    else:
+        weight = tb.getcol("WEIGHT")
     tb.close()
 
     # get the frequency information
     tb.open(visname+'/SPECTRAL_WINDOW')
-    freqlist = np.squeeze(tb.getcol("CHAN_FREQ"))
+    freqlist = tb.getcol("CHAN_FREQ")
     tb.close()
 
-    # remove lingering flagged columns
-    good = np.squeeze(np.any(flag, axis=0) == False)
-    data = data[:,good]
-    weight = weight[:,good]
+    # array shapes!
+    # data, flag = [Npol, Nchan, Nvis] 
+    # uvw = [3, Nvis] 
+    # weight = [Npol, Nvis]
+    # spwid = [Nvis] 
+    # freqlist = [Nchan, Nspw]
+
+    # copy the single SPW weights into individual channels (ALMA pipeline does
+    # not yet provide channel-dependent weights)
+    if len(weight.shape) < len(data.shape):
+        weight = np.repeat(weight[:, np.newaxis, :], data.shape[1], axis=1)
+
+    # remove lingering flagged columns (actually, *keep* unflagged columns)
+    good = np.any(~flag, axis=(0,1))
+    data = data[:,:,good]
+    weight = weight[:,:,good]
     uvw = uvw[:,good]
     spwid = spwid[good]
 
-    # average the polarizations
-    Re = np.sum(data.real * weight, axis=0) / np.sum(weight, axis=0)
-    Im = np.sum(data.imag * weight, axis=0) / np.sum(weight, axis=0)
-    vis = Re + 1j*Im
-    wgt = np.sum(weight, axis=0)
-
-    # associate each datapoint with a frequency
-    get_freq = lambda ispw: freqlist[ispw]
+    # associate each datapoint with a frequency: freqs = [Nchan, Nvis]
+    get_freq = lambda ispw: freqlist[:,ispw]
     freqs = get_freq(spwid)
 
-    # (u,v) positions in wavelengths
-    u, v = uvw[0,:] * freqs / 2.9979e8, uvw[1,:] * freqs / 2.9979e8
+    # convert (u,v) positions into wavelength units
+    um, vm = uvw[0,:], uvw[1,:]
+    u = um[np.newaxis, :] * freqs / 2.9979e8
+    v = vm[np.newaxis, :] * freqs / 2.9979e8
+
+    # if requested, average the polarizations
+    if combine_pol:
+        Re = np.sum(data.real * weight, axis=0) / np.sum(weight, axis=0)
+        Im = np.sum(data.imag * weight, axis=0) / np.sum(weight, axis=0)
+        vis = Re + 1j*Im
+        wgt = np.sum(weight, axis=0)
+    else:
+        u = np.repeat(u[np.newaxis, :, :], 2, axis=0)
+        v = np.repeat(v[np.newaxis, :, :], 2, axis=0)
+        freqs = np.repeat(freqs[np.newaxis, :, :], 2, axis=0)
+        vis = 1. * data
+        wgt = 1. * weight
+
+    # flatten the outputs for simplicity
+    u = u.flatten()
+    v = v.flatten()
+    freqs = freqs.flatten()
+    vis = vis.flatten()
+    wgt = wgt.flatten()
 
     # output to a numpy save file
     np.savez(outname, u=u, v=v, nu=freqs, Vis=vis, Wgt=wgt)
