@@ -105,7 +105,7 @@ def imparamcalc(msfile, D_ant=12.0):
     return mycell, myimsize, est_beam, nu_avg, PB
 
 
-def estimate_SNR(imagename, disk_mask, noise_mask):
+def estimate_SNR_orig(imagename, disk_mask, noise_mask):
     headerlist = imhead(imagename, mode = 'list')
     bmaj = headerlist['beammajor']['value']
     bmin = headerlist['beamminor']['value']
@@ -124,7 +124,28 @@ def estimate_SNR(imagename, disk_mask, noise_mask):
     print("# Peak SNR: %.1f" % (SNR,))
 
 
-def export_vis(visname, outname, combine_pol=False):
+def estimate_SNR(imagebase):
+    headerlist = imhead(imagebase + '.image.tt0', mode='list')
+    bmaj = headerlist['beammajor']['value']
+    bmin = headerlist['beamminor']['value']
+    bpa = headerlist['beampa']['value']
+    print(' ')
+    disk_stats = imstat(imagename=imagebase + '.image.tt0', 
+                        mask=f'"{imagebase}.mask" > 0.5')
+    print("# %s" % imagebase)
+    print("# Beam %.3f arcsec x %.3f arcsec (%.2f deg)" % (bmaj, bmin, bpa))
+    disk_flux = disk_stats['flux'][0]
+    print("# Flux inside mask: %.2f mJy" % (disk_flux*1e3,))
+    peak_intensity = disk_stats['max'][0]
+    print("# Peak intensity of source: %.2f mJy/beam" % (peak_intensity*1e3,))
+    rms = imstat(imagename=imagebase + '.image.tt0', 
+                 mask=f'"{imagebase}.mask" < 0.5')['rms'][0]
+    print("# rms: %.2f uJy/beam" % (rms*1e6,))
+    SNR = peak_intensity/rms
+    print("# Peak SNR: %.1f" % (SNR,))
+
+
+def export_vis(visname, outname, combine_pol=True):
     # get the tables out of the MS 
     tb.open(visname)
     data = tb.getcol("DATA")
@@ -177,19 +198,31 @@ def export_vis(visname, outname, combine_pol=False):
         Im = np.sum(data.imag * weight, axis=0) / np.sum(weight, axis=0)
         vis = Re + 1j*Im
         wgt = np.sum(weight, axis=0)
+        spw = np.repeat(spwid[np.newaxis, :], vis.shape[0], axis=0)
     else:
         u = np.repeat(u[np.newaxis, :, :], 2, axis=0)
         v = np.repeat(v[np.newaxis, :, :], 2, axis=0)
         freqs = np.repeat(freqs[np.newaxis, :, :], 2, axis=0)
         vis = 1. * data
         wgt = 1. * weight
+        spw = np.repeat(spwid[np.newaxis, :], vis.shape[1], axis=0)
+        spw = np.repeat(spw[np.newaxis, :, :], vis.shape[0], axis=0)
 
     # flatten the outputs for simplicity
-    u = u.flatten()
-    v = v.flatten()
-    freqs = freqs.flatten()
-    vis = vis.flatten()
-    wgt = wgt.flatten()
+    u_ = u.flatten()
+    v_ = v.flatten()
+    freqs_ = freqs.flatten()
+    vis_ = vis.flatten()
+    wgt_ = wgt.flatten()
+    spw_ = spw.flatten()
 
+    # last call to reject zero-weight points
+    u = u_[wgt_ > 0]
+    v = v_[wgt_ > 0]
+    freqs = freqs_[wgt_ > 0]
+    vis = vis_[wgt_ > 0]
+    wgt = wgt_[wgt_ > 0]
+    spw = spw_[wgt_ > 0]
+    
     # output to a numpy save file
-    np.savez(outname, u=u, v=v, nu=freqs, Vis=vis, Wgt=wgt)
+    np.savez(outname, u=u, v=v, nu=freqs, Vis=vis, Wgt=wgt, SPW=spw)

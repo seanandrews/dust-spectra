@@ -103,6 +103,14 @@ for i in range(len(msfile)):
     fieldnames = msmd.fieldnames()
     msmd.close()
 
+    print(fieldnames)
+
+sys.exit()
+
+
+for i in range(len(msfile)):
+
+
     # parse into target names (for output) and field names (for access)
     targ_fields = [item for item in fieldnames if item in td.keys()]
 
