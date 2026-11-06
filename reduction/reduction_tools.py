@@ -1,4 +1,4 @@
-from casatools import table
+from casatools import table, msmetadata
 import numpy as np
 from datetime import datetime, timedelta
 
@@ -226,3 +226,25 @@ def export_vis(visname, outname, combine_pol=True):
     
     # output to a numpy save file
     np.savez(outname, u=u, v=v, nu=freqs, Vis=vis, Wgt=wgt, SPW=spw)
+
+    return
+
+
+
+def ms_scan_report(msfile, field=None):
+
+    # open the msfile
+    msmd = msmetadata()
+    msmd.open(msfile)
+
+    scans = msmd.scansforfield(field)
+    for scan in scans:
+        timestamps = msmd.timesforscan(scan=scan)
+        unique_integrations = len(np.unique(timestamps))
+        print(f"Scan {scan:3d} : {unique_integrations:4d} integrations")
+        exp_time = msmd.exposuretime(scan=scan)
+        print(f"exposure {exp_time['value']}")
+
+    msmd.close()
+
+    return

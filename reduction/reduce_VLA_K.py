@@ -10,7 +10,7 @@ execfile('reduction_tools.py')
 
 # I/O paths
 pipe_dir = '/data/sandrews/VLA_LP/data/VLA/'
-proc_dir = '/d4/asha1/dust-spec/DR/VLA/'
+proc_dir = '/d4/asha1/dust-spectra/DR/VLA/'
 
 
 # fixed quantities: observing band, SPWs, flux calibrator, channel binning
@@ -54,7 +54,7 @@ src, vlbls = map(list, zip(*_))
 
 
 # Loop over batch of MS files
-for i in [3,4,5,6,7,8]:  #range(len(EB)):
+for i in [1]:  #range(len(EB)):
     # tracking
     print(f"\nReducing dataset {i:02d} for execution {EB[i]}...")
 
@@ -80,17 +80,17 @@ for i in [3,4,5,6,7,8]:  #range(len(EB)):
     if not os.path.exists(proc_dir + EB[i]):
         os.system('mkdir ' + proc_dir + EB[i])
     init_MS = proc_dir + EB[i] + 'pipeline.init.ms'
-    os.system('rm -rf ' + init_MS + '*')
-    mstransform(vis=pipe_dir + msfile[i], outputvis=init_MS, 
-                datacolumn=use_col, field=field_str)
+#    os.system('rm -rf ' + init_MS + '*')
+#    mstransform(vis=pipe_dir + msfile[i], outputvis=init_MS, 
+#                datacolumn=use_col, field=field_str)
 
     # standard RFI flag set
-    flagdata(vis=init_MS, mode='manual', spw=rfi_flags, flagbackup=False)
+#    flagdata(vis=init_MS, mode='manual', spw=rfi_flags, flagbackup=False)
 
     # execution-specific time flagging
-    if time_flags[i] is not None:
-        flagdata(vis=init_MS, mode='manual', spw='', timerange=time_flags[i],
-                 flagbackup=False)
+#    if time_flags[i] is not None:
+#        flagdata(vis=init_MS, mode='manual', spw='', timerange=time_flags[i],
+#                 flagbackup=False)
 
 
 
@@ -103,19 +103,19 @@ for i in [3,4,5,6,7,8]:  #range(len(EB)):
     cfint = interp1d(mjd, calfact, axis=1, kind='linear', bounds_error=False,
                      fill_value=(calfact[:,0], calfact[:,-1]))
     cf = list(cfint(med_time))
-    caltbl = init_MS.replace('.ms', '.gencal')
-    os.system('rm -rf ' + caltbl + '*')
-    gencal(vis=init_MS, caltable=caltbl, caltype='amp', spw=bspw, parameter=cf)
-    applycal(vis=init_MS, gaintable=caltbl, calwt=True, flagbackup=True)
+#    caltbl = init_MS.replace('.ms', '.gencal')
+#    os.system('rm -rf ' + caltbl + '*')
+#    gencal(vis=init_MS, caltable=caltbl, caltype='amp', spw=bspw, parameter=cf)
+#    applycal(vis=init_MS, gaintable=caltbl, calwt=True, flagbackup=True)
     fr_MS = proc_dir + EB[i] + 'pipeline.flag_rescale.ms'
     os.system('rm -rf ' + fr_MS + '*')
     os.system('cp -rf ' + init_MS + ' ' + fr_MS)
-    mstransform(vis=init_MS, outputvis=fr_MS, datacolumn='corrected', spw=bspw)
+#    mstransform(vis=init_MS, outputvis=fr_MS, datacolumn='corrected', spw=bspw)
 
 
 
     # Loop over each target field
-    for j in range(len(targ_fields)):
+    for j in [3]: #range(len(targ_fields)):
         print('\n Averaging and splitting data for '+targ_fields[j]+' ... ')
         
         # Spectral averaging (1 pseudo-channel per SPW)
